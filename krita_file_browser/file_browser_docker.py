@@ -160,6 +160,56 @@ class FileBrowserDocker(DockWidget):
         if self._root_path:
             self._set_root_path(self._root_path)
 
+    # --- Context menu ---
+
+    def _on_context_menu(self, pos):
+        if self._fs_model is None or not self._root_path:
+            return
+
+        index = self._tree.indexAt(pos)
+        menu = QMenu(self)
+
+        source_index = None
+        is_dir = False
+        is_root = False
+
+        if index.isValid():
+            source_index = self._proxy_model.mapToSource(index)
+            file_info = self._fs_model.fileInfo(source_index)
+            is_dir = file_info.isDir()
+            is_root = (file_info.absoluteFilePath() == self._root_path)
+
+        if is_dir:
+            menu.addAction("New .kra File", self._on_new_file)
+            menu.addAction("New Folder", self._on_new_folder)
+
+        if index.isValid():
+            if is_dir:
+                menu.addSeparator()
+            rename_action = menu.addAction("Rename", lambda checked=False, idx=index: self._tree.edit(idx))
+            rename_action.setEnabled(not is_root)
+            menu.addAction("Delete", lambda checked=False, si=source_index: self._on_delete_item(si))
+        elif not index.isValid():
+            menu.addAction("New .kra File", self._on_new_file)
+            menu.addAction("New Folder", self._on_new_folder)
+
+        if menu.actions():
+            menu.exec_(self._tree.viewport().mapToGlobal(pos))
+
+    def _on_new_folder(self):
+        if not self._root_path:
+            return
+        target_dir = self._get_selected_directory()
+        if create_folder(target_dir, parent=self):
+            self._status_label.setText(f"Folder created in: {target_dir}")
+
+    def _on_delete_item(self, source_index):
+        if source_index is None:
+            return
+        filepath = self._fs_model.filePath(source_index)
+        if delete_file(filepath, parent=self):
+            self._status_label.setText(f"Deleted: {os.path.basename(filepath)}")
+
     # --- Selection helpers ---
 
     def _get_selected_file(self):
