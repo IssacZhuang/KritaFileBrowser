@@ -1,7 +1,22 @@
 import os
 import re
 
-from PyQt5.QtWidgets import QMessageBox, QInputDialog
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QDoubleSpinBox,
+    QFormLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QInputDialog,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
 from krita import Krita
 
 
@@ -27,18 +42,104 @@ def open_file(filepath, parent=None):
     return None
 
 
+class NewFileDialog(QDialog):
+    """Dialog for creating a new .kra file with custom document properties."""
+
+    COLOR_MODELS = ["RGBA", "CMYKA", "GRAYA", "LABA", "XYZA", "YCbCrA", "A"]
+    COLOR_DEPTHS = ["U8", "U16", "F16", "F32"]
+
+    def __init__(self, directory, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("New File")
+        self._directory = directory
+        self._app = Krita.instance()
+        self._setup_ui()
+
+    def _setup_ui(self):
+        layout = QVBoxLayout(self)
+
+        # --- File name ---
+        name_layout = QHBoxLayout()
+        name_layout.addWidget(QLabel("File name:"))
+        self._name_edit = QLineEdit("Untitled.kra")
+        name_layout.addWidget(self._name_edit)
+        layout.addLayout(name_layout)
+
+        # --- Dimensions group ---
+        dim_group = QWidget()
+        dim_layout = QFormLayout(dim_group)
+        dim_layout.setContentsMargins(0, 0, 0, 0)
+
+        dim_row = QHBoxLayout()
+        self._width_spin = QSpinBox()
+        self._width_spin.setRange(1, 99999)
+        self._width_spin.setValue(1920)
+        self._width_spin.setSuffix(" px")
+        dim_row.addWidget(self._width_spin)
+        dim_row.addWidget(QLabel("x"))
+        self._height_spin = QSpinBox()
+        self._height_spin.setRange(1, 99999)
+        self._height_spin.setValue(1080)
+        self._height_spin.setSuffix(" px")
+        dim_row.addWidget(self._height_spin)
+        dim_layout.addRow("Dimensions:", dim_row)
+
+        self._resolution_spin = QDoubleSpinBox()
+        self._resolution_spin.setRange(1.0, 9999.0)
+        self._resolution_spin.setValue(150.0)
+        self._resolution_spin.setSuffix(" DPI")
+        self._resolution_spin.setDecimals(1)
+        dim_layout.addRow("Resolution:", self._resolution_spin)
+
+        layout.addWidget(dim_group)
+
+        # --- Color group ---
+        color_group = QWidget()
+        color_layout = QFormLayout(color_group)
+        color_layout.setContentsMargins(0, 0, 0, 0)
+
+        self._color_model_combo = QComboBox()
+        self._color_model_combo.addItems(self.COLOR_MODELS)
+        self._color_model_combo.setCurrentText("RGBA")
+        color_layout.addRow("Color model:", self._color_model_combo)
+
+        self._color_depth_combo = QComboBox()
+        self._color_depth_combo.addItems(self._color_depths)
+        self._color_depth_combo.setCurrentText("U8")
+        color_layout.addRow("Color depth:", self._color_depth_combo)
+
+        layout.addWidget(color_group)
+
+        # --- Buttons ---
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def get_document_params(self):
+        """Return (name, width, height, color_model, color_depth, resolution)."""
+        return (
+            self._name_edit.text().strip(),
+            self._width_spin.value(),
+            self._height_spin.value(),
+            self._color_model_combo.currentText(),
+            self._color_depth_combo.currentText(),
+            self._resolution_spin.value(),
+        )
+
+
 def create_file(directory, parent=None):
     """Create a new .kra file in the given directory. Returns True on success."""
-    name, ok = QInputDialog.getText(
-        parent,
-        "New File",
-        "File name:",
-        text="Untitled.kra",
-    )
-    if not ok or not name.strip():
+    dialog = NewFileDialog(directory, parent)
+    if dialog.exec_() != QDialog.Accepted:
         return False
 
-    name = name.strip()
+    name, width, height, color_model, color_depth, resolution = dialog.get_document_params()
+
+    if not name:
+        QMessageBox.warning(parent, "Invalid Name", "File name cannot be empty.")
+        return False
+
     if not name.endswith(".kra"):
         name += ".kra"
 
@@ -61,7 +162,7 @@ def create_file(directory, parent=None):
         return False
 
     app = Krita.instance()
-    doc = app.createDocument(1920, 1080, name, "RGBA", "U8", "", 150.0)
+    doc = app.createDocument(width, height, name, color_model, color_depth, "", resolution)
     if doc is None:
         QMessageBox.critical(parent, "Error", "Failed to create document.")
         return False
