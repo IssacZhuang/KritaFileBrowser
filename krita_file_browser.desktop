@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=krita_file_browser
+X-Python-2-Compatible=false
+Name=File Browser
+Comment=A VSCode-like file browser for browsing and opening files in Krita.

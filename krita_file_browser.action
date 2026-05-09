@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCollection version="2" name="Scripts">
+    <Actions category="Scripts">
+        <text>File Browser</text>
+        <Action name="open_file_browser">
+            <icon></icon>
+            <text>Open File Browser</text>
+            <toolTip>Open the file browser panel</toolTip>
+            <shortcut></shortcut>
+            <isCheckable>false</isCheckable>
+        </Action>
+    </Actions>
+</ActionCollection>
