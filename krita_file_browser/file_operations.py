@@ -1,23 +1,20 @@
 import os
+import re
 
 from PyQt5.QtWidgets import QMessageBox, QInputDialog
 from krita import Krita
 
-
-SUPPORTED_EXTENSIONS = {
-    ".kra", ".krz",
-    ".ora", ".psd", ".xcf", ".svg",
-    ".png", ".jpg", ".jpeg", ".gif",
-    ".tif", ".tiff", ".bmp",
-    ".exr", ".webp", ".heif", ".heic",
-    ".jp2", ".jxl", ".tga", ".hdr", ".pdf",
-}
+from .constants import SUPPORTED_EXTENSIONS
 
 
 def open_file(filepath, parent=None):
     """Open a file in Krita. Returns the Document on success, None on failure."""
     app = Krita.instance()
-    doc = app.openDocument(filepath)
+    try:
+        doc = app.openDocument(filepath)
+    except Exception:
+        doc = None
+
     if doc is not None:
         window = app.activeWindow()
         if window is not None:
@@ -46,6 +43,14 @@ def create_file(directory, parent=None):
     name = name.strip()
     if not name.endswith(".kra"):
         name += ".kra"
+
+    if re.search(r'[<>:"/\\|?*]', name) or name.rstrip('.') != name:
+        QMessageBox.warning(
+            parent,
+            "Invalid Name",
+            f"The filename '{name}' contains invalid characters.",
+        )
+        return False
 
     filepath = os.path.join(directory, name)
 

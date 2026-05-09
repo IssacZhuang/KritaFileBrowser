@@ -1,0 +1,18 @@
+SUPPORTED_EXTENSIONS = {
+    ".kra", ".krz",
+    ".ora",
+    ".psd",
+    ".xcf",
+    ".svg",
+    ".png", ".jpg", ".jpeg", ".gif",
+    ".tif", ".tiff",
+    ".bmp",
+    ".exr",
+    ".webp",
+    ".heif", ".heic",
+    ".jp2",
+    ".jxl",
+    ".tga",
+    ".hdr",
+    ".pdf",
+}

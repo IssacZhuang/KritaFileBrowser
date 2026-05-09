@@ -1,25 +1,7 @@
 import os
 from PyQt5.QtCore import QSortFilterProxyModel, Qt
 
-
-SUPPORTED_EXTENSIONS = {
-    ".kra", ".krz",
-    ".ora",
-    ".psd",
-    ".xcf",
-    ".svg",
-    ".png", ".jpg", ".jpeg", ".gif",
-    ".tif", ".tiff",
-    ".bmp",
-    ".exr",
-    ".webp",
-    ".heif", ".heic",
-    ".jp2",
-    ".jxl",
-    ".tga",
-    ".hdr",
-    ".pdf",
-}
+from .constants import SUPPORTED_EXTENSIONS
 
 
 class FileFilterProxyModel(QSortFilterProxyModel):
