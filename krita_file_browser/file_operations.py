@@ -104,7 +104,7 @@ class NewFileDialog(QDialog):
         color_layout.addRow("Color model:", self._color_model_combo)
 
         self._color_depth_combo = QComboBox()
-        self._color_depth_combo.addItems(self._color_depths)
+        self._color_depth_combo.addItems(self.COLOR_DEPTHS)
         self._color_depth_combo.setCurrentText("U8")
         color_layout.addRow("Color depth:", self._color_depth_combo)
 

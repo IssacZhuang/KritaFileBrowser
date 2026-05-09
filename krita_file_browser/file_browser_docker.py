@@ -72,9 +72,8 @@ class FileBrowserDocker(DockWidget):
         self._proxy_model = FileFilterProxyModel()
         self._tree.setModel(self._proxy_model)
 
-        # Hide all columns except name (column 0)
-        for col in range(1, 4):
-            self._tree.hideColumn(col)
+        # Hide all columns except name (column 0) — reapplied after model is set
+        self._columns_hidden = False
         self._tree.doubleClicked.connect(self._on_tree_double_click)
         self._tree.selectionModel().selectionChanged.connect(self._on_selection_changed)
         self._stack.addWidget(self._tree)
@@ -118,6 +117,10 @@ class FileBrowserDocker(DockWidget):
             self._fs_model = QFileSystemModel()
             self._fs_model.setFilter(QDir.AllDirs | QDir.Files | QDir.NoDotAndDotDot)
             self._proxy_model.setSourceModel(self._fs_model)
+
+            # Hide columns after source model is attached
+            for col in range(1, 4):
+                self._tree.hideColumn(col)
 
         self._fs_model.setRootPath(path)
         root_index = self._fs_model.index(path)
