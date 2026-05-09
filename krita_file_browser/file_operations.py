@@ -4,8 +4,6 @@ import re
 from PyQt5.QtWidgets import QMessageBox, QInputDialog
 from krita import Krita
 
-from .constants import SUPPORTED_EXTENSIONS
-
 
 def open_file(filepath, parent=None):
     """Open a file in Krita. Returns the Document on success, None on failure."""
