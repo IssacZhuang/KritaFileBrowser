@@ -149,13 +149,6 @@ class FileBrowserDocker(DockWidget):
         target_dir = self._get_selected_directory()
         create_file(target_dir, parent=self)
 
-    def _on_delete_file(self):
-        filepath = self._get_selected_file()
-        if not filepath:
-            return
-        if delete_file(filepath, parent=self):
-            self._status_label.setText(f"Deleted: {os.path.basename(filepath)}")
-
     def _on_refresh(self):
         if self._root_path:
             self._set_root_path(self._root_path)
@@ -204,7 +197,7 @@ class FileBrowserDocker(DockWidget):
             self._status_label.setText(f"Folder created in: {target_dir}")
 
     def _on_delete_item(self, source_index):
-        if source_index is None:
+        if source_index is None or not source_index.isValid():
             return
         filepath = self._fs_model.filePath(source_index)
         if delete_file(filepath, parent=self):
