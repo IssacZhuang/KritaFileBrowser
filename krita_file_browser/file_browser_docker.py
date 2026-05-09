@@ -110,6 +110,7 @@ class FileBrowserDocker(DockWidget):
             from PyQt5.QtWidgets import QFileSystemModel
             self._fs_model = QFileSystemModel()
             self._fs_model.setFilter(QDir.AllDirs | QDir.Files | QDir.NoDotAndDotDot)
+            self._fs_model.setReadOnly(False)
             self._proxy_model.setSourceModel(self._fs_model)
 
             # Hide columns after source model is attached
