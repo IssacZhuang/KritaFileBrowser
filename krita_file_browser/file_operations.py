@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
@@ -176,12 +177,19 @@ def create_file(directory, parent=None):
 
 
 def delete_file(filepath, parent=None):
-    """Delete a file after user confirmation. Returns True on success."""
+    """Delete a file or directory after user confirmation. Returns True on success."""
     filename = os.path.basename(filepath)
+    is_dir = os.path.isdir(filepath)
+
+    if is_dir:
+        msg = f"Are you sure you want to delete the folder '{filename}' and all its contents?\n\nThis action cannot be undone."
+    else:
+        msg = f"Are you sure you want to delete '{filename}'?\n\nThis action cannot be undone."
+
     reply = QMessageBox.question(
         parent,
-        "Delete File",
-        f"Are you sure you want to delete '{filename}'?\n\nThis action cannot be undone.",
+        "Delete",
+        msg,
         QMessageBox.Yes | QMessageBox.No,
         QMessageBox.No,
     )
@@ -189,12 +197,58 @@ def delete_file(filepath, parent=None):
         return False
 
     try:
-        os.remove(filepath)
+        if is_dir:
+            shutil.rmtree(filepath)
+        else:
+            os.remove(filepath)
         return True
     except OSError as e:
         QMessageBox.critical(
             parent,
             "Delete Error",
-            f"Could not delete file:\n{e}",
+            f"Could not delete:\n{e}",
+        )
+        return False
+
+
+def create_folder(directory, parent=None):
+    """Create a new folder in the given directory. Returns True on success."""
+    name, ok = QInputDialog.getText(
+        parent,
+        "New Folder",
+        "Folder name:",
+        text="New Folder",
+    )
+    if not ok or not name.strip():
+        return False
+
+    name = name.strip()
+
+    if re.search(r'[<>:"/\\|?*]', name) or name.rstrip('.') != name:
+        QMessageBox.warning(
+            parent,
+            "Invalid Name",
+            f"The name '{name}' contains invalid characters.",
+        )
+        return False
+
+    folder_path = os.path.join(directory, name)
+
+    if os.path.exists(folder_path):
+        QMessageBox.warning(
+            parent,
+            "Folder Exists",
+            f"A folder named '{name}' already exists.",
+        )
+        return False
+
+    try:
+        os.makedirs(folder_path)
+        return True
+    except OSError as e:
+        QMessageBox.critical(
+            parent,
+            "Error",
+            f"Could not create folder:\n{e}",
         )
         return False
