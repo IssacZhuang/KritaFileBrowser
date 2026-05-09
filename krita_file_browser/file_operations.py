@@ -2,7 +2,6 @@ import os
 import re
 import shutil
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QComboBox,
     QDialog,

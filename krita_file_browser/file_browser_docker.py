@@ -71,8 +71,6 @@ class FileBrowserDocker(DockWidget):
         self._proxy_model = FileFilterProxyModel()
         self._tree.setModel(self._proxy_model)
 
-        # Hide all columns except name (column 0) — reapplied after model is set
-        self._columns_hidden = False
         self._tree.doubleClicked.connect(self._on_tree_double_click)
         self._tree.selectionModel().selectionChanged.connect(self._on_selection_changed)
         self._stack.addWidget(self._tree)
