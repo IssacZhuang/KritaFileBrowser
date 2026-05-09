@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QListWidget,
     QListWidgetItem,
+    QMenu,
     QPushButton,
     QStackedWidget,
     QTreeView,
@@ -16,7 +17,7 @@ from PyQt5.QtWidgets import (
 )
 from krita import DockWidget, Krita
 
-from .file_operations import create_file, delete_file, open_file
+from .file_operations import create_file, create_folder, delete_file, open_file
 from .file_system_model import FileFilterProxyModel
 from .search_worker import SearchWorker
 
@@ -48,15 +49,13 @@ class FileBrowserDocker(DockWidget):
         toolbar_layout.setContentsMargins(4, 4, 4, 4)
         toolbar_layout.setSpacing(4)
 
-        self._btn_open = QPushButton("Open")
-        self._btn_new = QPushButton("New")
-        self._btn_delete = QPushButton("Del")
+        self._btn_open = QPushButton("Open Folder")
         self._btn_refresh = QPushButton("Refresh")
 
         self._search_input = QLineEdit()
         self._search_input.setPlaceholderText("Search files...")
 
-        for btn in (self._btn_open, self._btn_new, self._btn_delete, self._btn_refresh):
+        for btn in (self._btn_open, self._btn_refresh):
             toolbar_layout.addWidget(btn)
         toolbar_layout.addWidget(self._search_input, stretch=1)
 
@@ -90,16 +89,13 @@ class FileBrowserDocker(DockWidget):
         self._status_label.setContentsMargins(4, 2, 4, 2)
         layout.addWidget(self._status_label)
 
-        # Delete starts disabled (nothing selected)
-        self._btn_delete.setEnabled(False)
-
     def _connect_signals(self):
         self._btn_open.clicked.connect(self._on_open_directory)
-        self._btn_new.clicked.connect(self._on_new_file)
-        self._btn_delete.clicked.connect(self._on_delete_file)
         self._btn_refresh.clicked.connect(self._on_refresh)
         self._search_input.textChanged.connect(self._on_search_text_changed)
         self._search_timer.timeout.connect(self._start_search)
+        self._tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self._tree.customContextMenuRequested.connect(self._on_context_menu)
 
     # --- Path management ---
 
@@ -189,7 +185,6 @@ class FileBrowserDocker(DockWidget):
 
     def _on_selection_changed(self):
         filepath = self._get_selected_file()
-        self._btn_delete.setEnabled(filepath is not None)
         if filepath:
             self._status_label.setText(filepath)
         elif self._root_path:
