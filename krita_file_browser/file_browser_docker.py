@@ -107,7 +107,8 @@ class FileBrowserDocker(DockWidget):
 
         self._root_path = path
 
-        # Lazily create QFileSystemModel (must be created after QApplication exists)
+        # QFileSystemModel must be created after QApplication is running,
+        # so we defer it to first use rather than __init__
         if self._fs_model is None:
             from PyQt5.QtWidgets import QFileSystemModel
             self._fs_model = QFileSystemModel()
@@ -200,7 +201,7 @@ class FileBrowserDocker(DockWidget):
     def _on_search_text_changed(self, text):
         if self._search_worker and self._search_worker.isRunning():
             self._search_worker.cancel()
-            self._search_worker.wait()
+            self._search_worker.wait(100)
 
         if not text.strip():
             self._stack.setCurrentWidget(self._tree)
@@ -215,7 +216,7 @@ class FileBrowserDocker(DockWidget):
 
         if self._search_worker and self._search_worker.isRunning():
             self._search_worker.cancel()
-            self._search_worker.wait()
+            self._search_worker.wait(100)
 
         self._search_list.clear()
         self._stack.setCurrentWidget(self._search_list)
