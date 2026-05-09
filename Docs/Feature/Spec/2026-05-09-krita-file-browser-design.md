@@ -202,6 +202,66 @@ Comment=A VSCode-like file browser for browsing and opening files in Krita.
 </ActionCollection>
 ```
 
+## Plugin Loading & Verification
+
+### Installation
+
+1. Locate the Krita resources folder: Krita → Settings → Manage Resources → Open Resources Folder
+2. In the resources folder, find or create the `pykrita` subdirectory
+3. Copy the following items from the project build output into `pykrita/`:
+   - `krita_file_browser.desktop` (plugin registration file)
+   - `krita_file_browser/` (plugin module directory)
+4. Place `krita_file_browser.action` into `pykrita/actions/` (create the `actions` folder if it doesn't exist)
+5. Restart Krita
+6. Go to Settings → Configure Krita → Python Plugin Manager
+7. Find "File Browser" in the list and enable it (checkbox)
+8. Restart Krita again — the Docker should now appear
+
+### Development Workflow
+
+During development, symlink or copy the plugin files into `pykrita/` for fast iteration:
+
+```powershell
+# Windows example — adjust paths to your Krita resources location
+$kritaRes = "$env:APPDATA\krita\pykrita"
+
+# Remove old version if exists
+Remove-Item "$kritaRes\krita_file_browser.desktop" -ErrorAction SilentlyContinue
+Remove-Item "$kritaRes\krita_file_browser" -Recurse -ErrorAction SilentlyContinue
+
+# Symlink from project to krita resources
+New-Item -ItemType SymbolicLink -Path "$kritaRes\krita_file_browser.desktop" -Target "C:\Projects\KritaFileBrowser\krita_file_browser.desktop"
+New-Item -ItemType SymbolicLink -Path "$kritaRes\krita_file_browser" -Target "C:\Projects\KritaFileBrowser\krita_file_browser"
+```
+
+After each code change, use **Settings → Plugins → "Reload Python Plugins"** (if available) or restart Krita to pick up changes.
+
+To check for plugin errors on load: open Krita's Python console (Tools → Scripter) and look at the output, or check the log file at:
+- Windows: `%APPDATA%\krita\log\krita.log`
+- Linux: `~/.local/share/krita/log/krita.log`
+
+### Smoke Test Checklist
+
+Verify each item after installation or significant code changes:
+
+| # | Test Case | Steps | Expected Result |
+|---|-----------|-------|-----------------|
+| 1 | Plugin loads | Start Krita, open Python Plugin Manager | "File Browser" appears and is checked/enabled |
+| 2 | Docker visible | Look at the right panel | "File Browser" docker is visible with toolbar and empty tree |
+| 3 | Open directory | Click "Open" button, select a directory with image files | Tree populates with directory structure and supported files |
+| 4 | Filter works | Open a directory containing .txt, .exe, .kra, .png files | Only .kra and .png (and other supported types) are shown; .txt and .exe are hidden |
+| 5 | Tree navigation | Click expand arrows on subdirectories | Subdirectories expand showing their contents |
+| 6 | Open file | Double-click a .kra or .png file | File opens in Krita as a new document |
+| 7 | New file | Click "New" button, enter a name, confirm | A new .kra file appears in the tree and opens in Krita |
+| 8 | Delete file | Select a file, click "Delete", confirm in dialog | File is removed from disk and disappears from tree |
+| 9 | Delete on directory | Select a directory node, observe Delete button | Delete button is disabled (grayed out) |
+| 10 | Search | Type a filename fragment in search box | Search results appear showing matching files from all subdirectories |
+| 11 | Search clear | Clear the search box | Tree view returns to normal directory browsing |
+| 12 | Search open | Click a search result | File opens in Krita |
+| 13 | Path persistence | Open a directory, restart Krita | Plugin auto-loads the previously opened directory |
+| 14 | Error: bad file | Double-click a corrupted/unsupported file | Error message appears, no crash |
+| 15 | Error: missing directory | Set path, delete that directory externally, restart | Status bar shows directory not accessible, no crash |
+
 ## Scope and Non-Goals
 
 ### In Scope
