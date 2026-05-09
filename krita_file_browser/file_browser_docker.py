@@ -1,6 +1,6 @@
 import os
 
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QDir
 from PyQt5.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -112,7 +112,7 @@ class FileBrowserDocker(DockWidget):
         if self._fs_model is None:
             from PyQt5.QtWidgets import QFileSystemModel
             self._fs_model = QFileSystemModel()
-            self._fs_model.setFilter(QFileSystemModel.AllDirs | QFileSystemModel.Files | QFileSystemModel.NoDotAndDotDot)
+            self._fs_model.setFilter(QDir.AllDirs | QDir.Files | QDir.NoDotAndDotDot)
             self._proxy_model.setSourceModel(self._fs_model)
 
         self._fs_model.setRootPath(path)
