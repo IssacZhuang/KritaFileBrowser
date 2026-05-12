@@ -70,6 +70,10 @@ class FileBrowserDocker(DockWidget):
         # Tree view
         self._tree = QTreeView()
         self._tree.setHeaderHidden(True)
+        self._tree.setDragEnabled(True)
+        self._tree.setAcceptDrops(True)
+        self._tree.setDropIndicatorShown(True)
+        self._tree.setDragDropMode(QTreeView.InternalMove)
         self._fs_model = None
         self._proxy_model = FileFilterProxyModel()
         self._tree.setModel(self._proxy_model)
