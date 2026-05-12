@@ -1,6 +1,9 @@
 import os
+import subprocess
+import sys
 
 from PyQt5.QtCore import Qt, QTimer, QDir
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -181,6 +184,8 @@ class FileBrowserDocker(DockWidget):
             rename_action = menu.addAction("Rename", lambda checked=False, idx=index: self._tree.edit(idx))
             rename_action.setEnabled(not is_root)
             menu.addAction("Delete", lambda checked=False, si=source_index: self._on_delete_item(si))
+            menu.addSeparator()
+            menu.addAction("Reveal in File Explorer", lambda checked=False, si=source_index: self._on_reveal_in_explorer(si))
         elif not index.isValid():
             menu.addAction("New .kra File", self._on_new_file)
             menu.addAction("New Folder", self._on_new_folder)
@@ -201,6 +206,19 @@ class FileBrowserDocker(DockWidget):
         filepath = self._fs_model.filePath(source_index)
         if delete_file(filepath, parent=self):
             self._status_label.setText(f"Deleted: {os.path.basename(filepath)}")
+
+    def _on_reveal_in_explorer(self, source_index):
+        if source_index is None or not source_index.isValid():
+            return
+        filepath = self._fs_model.filePath(source_index)
+        filepath = os.path.normpath(filepath)
+        if sys.platform == "win32":
+            # Must pass as a single shell command string for explorer /select
+            subprocess.Popen(f'explorer /select,"{filepath}"', shell=True)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", "-R", filepath])
+        else:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(filepath)))
 
     # --- Selection helpers ---
 
