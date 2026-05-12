@@ -20,7 +20,7 @@ from PyQt5.QtWidgets import (
 )
 from krita import DockWidget, Krita
 
-from .file_operations import create_file, create_folder, delete_file, open_file
+from .file_operations import create_file, create_folder, delete_file, duplicate_item, open_file
 from .file_system_model import FileFilterProxyModel
 from .search_worker import SearchWorker
 
@@ -187,6 +187,7 @@ class FileBrowserDocker(DockWidget):
                 menu.addSeparator()
             rename_action = menu.addAction("Rename", lambda checked=False, idx=index: self._tree.edit(idx))
             rename_action.setEnabled(not is_root)
+            menu.addAction("Duplicate", lambda checked=False, si=source_index: self._on_duplicate_item(si))
             menu.addAction("Delete", lambda checked=False, si=source_index: self._on_delete_item(si))
             menu.addSeparator()
             menu.addAction("Reveal in File Explorer", lambda checked=False, si=source_index: self._on_reveal_in_explorer(si))
@@ -210,6 +211,14 @@ class FileBrowserDocker(DockWidget):
         filepath = self._fs_model.filePath(source_index)
         if delete_file(filepath, parent=self):
             self._status_label.setText(f"Deleted: {os.path.basename(filepath)}")
+
+    def _on_duplicate_item(self, source_index):
+        if source_index is None or not source_index.isValid():
+            return
+        filepath = self._fs_model.filePath(source_index)
+        new_path = duplicate_item(filepath, parent=self)
+        if new_path:
+            self._status_label.setText(f"Duplicated: {os.path.basename(new_path)}")
 
     def _on_reveal_in_explorer(self, source_index):
         if source_index is None or not source_index.isValid():

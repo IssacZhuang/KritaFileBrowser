@@ -251,3 +251,33 @@ def create_folder(directory, parent=None):
             f"Could not create folder:\n{e}",
         )
         return False
+
+
+def duplicate_item(filepath, parent=None):
+    """Duplicate a file or folder in place. Returns the new path on success, None on failure."""
+    directory = os.path.dirname(filepath)
+    basename = os.path.basename(filepath)
+
+    # Generate a unique name: "name (1).ext", "name (2).ext", ...
+    name, ext = os.path.splitext(basename)
+    counter = 1
+    while True:
+        new_name = f"{name} ({counter}){ext}"
+        new_path = os.path.join(directory, new_name)
+        if not os.path.exists(new_path):
+            break
+        counter += 1
+
+    try:
+        if os.path.isdir(filepath):
+            shutil.copytree(filepath, new_path)
+        else:
+            shutil.copy2(filepath, new_path)
+        return new_path
+    except OSError as e:
+        QMessageBox.critical(
+            parent,
+            "Duplicate Error",
+            f"Could not duplicate:\n{e}",
+        )
+        return None
